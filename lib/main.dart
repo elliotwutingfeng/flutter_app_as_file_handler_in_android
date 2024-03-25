@@ -1,3 +1,6 @@
+import 'dart:io';
+
+import 'package:uri_to_file/uri_to_file.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 
@@ -32,14 +35,19 @@ class MyHomePage extends StatefulWidget {
 class _MyHomePageState extends State<MyHomePage> {
   int _counter = 0;
   String _filePath = '';
+  Uint8List _fileBytes = Uint8List(0);
 
   @override
   void initState() {
     super.initState();
     const MethodChannel('your_channel_name').setMethodCallHandler((call) async {
       if (call.method == 'receiveFileUri') {
+        String filePath = call.arguments;
+        File f = await toFile(filePath);
+        final b = await f.readAsBytes();
         setState(() {
-          _filePath = call.arguments; // Update _filePath with received URI
+          _filePath = filePath;
+          _fileBytes = b;
         });
       }
     });
@@ -64,6 +72,7 @@ class _MyHomePageState extends State<MyHomePage> {
           mainAxisAlignment: MainAxisAlignment.center,
           children: <Widget>[
             Text(_filePath),
+            Text(_fileBytes.length as String),
             const Text(
               'If you have opted to open a file using this Flutter app, you should see the fileUri of that file above this line.',
             ),
